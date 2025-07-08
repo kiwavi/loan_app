@@ -115,19 +115,29 @@ app.delete(
             .json({ success: true, message: "Client not found" });
         }
 
-        let deleted_client = await prisma.clients.update({
-          where: {
-            id: client.id,
-            loans: {
-              none: {
-                active: true,
+        try {
+          let deleted_client = await prisma.clients.update({
+            where: {
+              id: client.id,
+              loans: {
+                none: {
+                  active: true,
+                },
               },
             },
-          },
-          data: {
-            deleted_at: new Date(),
-          },
-        });
+            data: {
+              deleted_at: new Date(),
+            },
+          });
+        } catch (error) {
+          if (error.code === "P2025") {
+            return res
+              .status(404)
+              .json({ message: "Client has existing active loans." });
+          } else {
+            throw error; // Let unexpected errors bubble up
+          }
+        }
 
         return res
           .status(200)
@@ -141,6 +151,7 @@ app.delete(
           .map((error) => `${error.path}(${error.location}): ${error.msg}`),
       });
     } catch (e) {
+      console.log(e);
       return res
         .status(500)
         .json({ success: false, message: "Internal server error" });
