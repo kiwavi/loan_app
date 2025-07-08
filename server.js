@@ -71,7 +71,60 @@ app.post(
           .map((error) => `${error.path}(${error.location}): ${error.msg}`),
       });
     } catch (e) {
-      console.log(e);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+);
+
+app.delete(
+  "/client",
+  query("uid").notEmpty().withMessage("You must supply a unique ID"),
+  async (req, res) => {
+    try {
+      const result = validationResult(req);
+      if (result.isEmpty()) {
+        let data = matchedData(req);
+        let { phone_number, full_name } = data;
+
+        let client = await prisma.clients.findFirst({
+          where: {
+            uid,
+            deleted_at: null,
+          },
+        });
+
+        if (!client) {
+          return res
+            .status(400)
+            .json({ success: true, message: "Client not found" });
+        }
+
+        let deleted_client = await prisma.clients.update({
+          where: {
+            uid,
+          },
+          data: {
+            deleted_at: new Date(),
+          },
+        });
+
+        return res
+          .status(200)
+          .json({ success: true, message: "Client successfully deactivated" });
+      }
+
+      return res.status(400).json({
+        message: "validation failed",
+        validationErrors: result
+          .array()
+          .map((error) => `${error.path}(${error.location}): ${error.msg}`),
+      });
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
   }
 );
