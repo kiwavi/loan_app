@@ -118,6 +118,11 @@ app.delete(
         let deleted_client = await prisma.clients.update({
           where: {
             id: client.id,
+            loans: {
+              none: {
+                active: true,
+              },
+            },
           },
           data: {
             deleted_at: new Date(),
@@ -194,6 +199,7 @@ app.post(
             data: {
               client_id: user.id,
               amount,
+              approved: true,
             },
             select: {
               uid: true,
