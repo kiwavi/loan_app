@@ -9,7 +9,7 @@ dotenv.config();
 const port = process.env.PORT;
 
 app.get("/", async (req, res) => {
-  return res.status(200).json({ success: true, message: "True" });
+  return res.status(200).json({ success: true, message: "Hello world" });
 });
 
 app.listen(port, () => {
