@@ -244,6 +244,41 @@ app.post(
   }
 );
 
+app.get("/loans", async (req, res) => {
+  try {
+    // fetch all active loans
+    let loans = await prisma.loans.findMany({
+      where: {
+        deleted_at: null,
+        active: true,
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, data: loans, count: loans.length });
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+app.get("/loan-amount", async (req, res) => {
+  try {
+    let total_amount =
+      await prisma.$queryRaw`select sum(amount::numeric) as total from "Loans" where deleted_at is null`;
+
+    return res
+      .status(200)
+      .json({ success: true, data: { total: total_amount[0].amount } });
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(
     `[server]: Server is running at http://localhost:${port || 3000}`
