@@ -7,6 +7,7 @@ const {
   body,
   matchedData,
   validationResult,
+  check,
 } = require("express-validator");
 const prisma = require("./prisma/client");
 
@@ -126,6 +127,87 @@ app.delete(
         return res
           .status(200)
           .json({ success: true, message: "Client successfully deactivated" });
+      }
+
+      return res.status(400).json({
+        message: "validation failed",
+        validationErrors: result
+          .array()
+          .map((error) => `${error.path}(${error.location}): ${error.msg}`),
+      });
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+);
+
+app.post(
+  "/loan",
+  body(["client_id"])
+    .notEmpty()
+    .isUUID()
+    .withMessage("Valid client id must be supplied"),
+  body(["amount"])
+    .notEmpty()
+    .isInt()
+    .withMessage("Valid amount should be supplied"),
+  check("amount")
+    .isInt({ gt: 0 }) // positive integer
+    .withMessage("Amount must be a positive integer.")
+    .custom((value) => {
+      if (parseInt(value) > 1000000) {
+        throw new Error("Amount must not exceed 1,000,000.");
+      }
+      return true;
+    }),
+  async (req, res) => {
+    try {
+      const result = validationResult(req);
+      if (result.isEmpty()) {
+        let data = matchedData(req);
+        let { client_id, amount } = data;
+
+        // user must be a valid user
+        let user = await prisma.clients.findFirst({
+          where: {
+            uid: client_id,
+            deleted_at: null,
+          },
+        });
+
+        if (!user) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Valid user not found" });
+        }
+
+        let loan;
+
+        // create the loan
+        await prisma.$transaction(async (tx) => {
+          let user = tx.queryRaw`select * from clients where id=${user.id} for update`;
+
+          loan = await prisma.Loans.create({
+            data: {
+              client_id: user.id,
+              amount,
+            },
+            select: {
+              uid: true,
+              amount: true,
+              user: {
+                select: {
+                  full_name: true,
+                  phone_number: true,
+                },
+              },
+            },
+          });
+        });
+
+        return res.status(200).json({ success: true, data: loan });
       }
 
       return res.status(400).json({
