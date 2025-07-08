@@ -17,7 +17,7 @@ datasource db {
 model Clients {
   id           Int       @id @default(autoincrement())
   uid          String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone_number String    @db.VarChar(255)
+  phone_number String    @unique @db.VarChar(255)
   full_name    String    @db.VarChar(255)
   created_at   DateTime  @default(now())
   deleted_at   DateTime?
