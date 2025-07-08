@@ -185,7 +185,7 @@ app.post(
 
         let loan;
 
-        // create the loan
+        // create the loan with pessimistic concurrency control
         await prisma.$transaction(async (tx) => {
           let lockUser =
             await tx.$queryRaw`select * from "Clients" where id=${user.id} for update`;
