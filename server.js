@@ -187,9 +187,10 @@ app.post(
 
         // create the loan
         await prisma.$transaction(async (tx) => {
-          let user = tx.queryRaw`select * from clients where id=${user.id} for update`;
+          let lockUser =
+            await tx.$queryRaw`select * from "Clients" where id=${user.id} for update`;
 
-          loan = await prisma.Loans.create({
+          loan = await tx.Loans.create({
             data: {
               client_id: user.id,
               amount,
@@ -217,6 +218,7 @@ app.post(
           .map((error) => `${error.path}(${error.location}): ${error.msg}`),
       });
     } catch (e) {
+      console.log(e);
       return res
         .status(500)
         .json({ success: false, message: "Internal server error" });
