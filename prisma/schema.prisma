@@ -13,3 +13,26 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Clients {
+  id           Int       @id @default(autoincrement())
+  uid          String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone_number String    @db.VarChar(255)
+  full_name    String    @db.VarChar(255)
+  created_at   DateTime  @default(now())
+  deleted_at   DateTime?
+  updated_at   DateTime  @updatedAt
+  loans        Loans[]
+}
+
+model Loans {
+  id         Int       @id @default(autoincrement())
+  uid        String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  amount     Int
+  client_id  Int
+  user       Clients   @relation(fields: [client_id], references: [id])
+  created_at DateTime  @default(now())
+  log        Json?     @db.Json
+  deleted_at DateTime?
+  updated_at DateTime  @updatedAt
+}
