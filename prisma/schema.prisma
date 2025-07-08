@@ -33,5 +33,7 @@ model Loans {
   created_at DateTime  @default(now())
   log        Json?     @db.Json
   deleted_at DateTime?
+  approved   Boolean?  @default(false)
+  active     Boolean   @default(true)
   updated_at DateTime  @updatedAt
 }
