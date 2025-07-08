@@ -135,7 +135,9 @@ app.delete(
               .status(404)
               .json({ message: "Client has existing active loans." });
           } else {
-            throw error; // Let unexpected errors bubble up
+            return res
+              .status(500)
+              .json({ success: false, message: "Internal server error" });
           }
         }
 
