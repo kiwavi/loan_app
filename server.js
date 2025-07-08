@@ -218,7 +218,6 @@ app.post(
           .map((error) => `${error.path}(${error.location}): ${error.msg}`),
       });
     } catch (e) {
-      console.log(e);
       return res
         .status(500)
         .json({ success: false, message: "Internal server error" });
