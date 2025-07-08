@@ -11,6 +11,8 @@ const {
 const prisma = require("./prisma/client");
 
 app.use(bodyParser.json());
+const morgan = require("morgan");
+app.use(morgan("combined"));
 
 dotenv.config();
 const port = process.env.PORT;
@@ -49,18 +51,29 @@ app.post(
             .json({ success: false, message: "Active client already exists" });
         }
 
-        let client = await prisma.clients.create({
-          data: {
-            phone_number,
-            full_name,
-          },
-          select: {
-            uid: true,
-            phone_number: true,
-            full_name: true,
-          },
-        });
+        let client;
 
+        try {
+          client = await prisma.clients.create({
+            data: {
+              phone_number,
+              full_name,
+            },
+            select: {
+              uid: true,
+              phone_number: true,
+              full_name: true,
+            },
+          });
+        } catch (e) {
+          if (e.code === "P2002") {
+            // unique constraint error
+            return res.status(400).json({
+              success: false,
+              message: "Account already exists but deactivated",
+            });
+          }
+        }
         return res.status(200).json({ success: true, data: client });
       }
 
@@ -86,7 +99,7 @@ app.delete(
       const result = validationResult(req);
       if (result.isEmpty()) {
         let data = matchedData(req);
-        let { phone_number, full_name } = data;
+        let { uid } = data;
 
         let client = await prisma.clients.findFirst({
           where: {
@@ -103,7 +116,7 @@ app.delete(
 
         let deleted_client = await prisma.clients.update({
           where: {
-            uid,
+            id: client.id,
           },
           data: {
             deleted_at: new Date(),
