@@ -24,6 +24,10 @@ touch .env
 PORT=3000
 DATABASE_URL=postgresql://postgres:yourpassword@127.0.0.1:5432/yourdbname?schema=public
 
+# (Paste this to .env)
+# This was inserted by `prisma init`:
+[object Promise]
+
 # 5. Initialize the database with Prisma
 npx prisma migrate dev --name init
 
