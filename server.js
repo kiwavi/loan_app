@@ -22,6 +22,7 @@ app.get("/", async (req, res) => {
   return res.status(200).json({ success: true, message: "Hello world" });
 });
 
+// create a client
 app.post(
   "/client",
   body(["phone_number"])
@@ -92,6 +93,7 @@ app.post(
   }
 );
 
+// delete a client
 app.delete(
   "/client",
   query("uid").notEmpty().withMessage("You must supply a unique ID"),
@@ -161,6 +163,7 @@ app.delete(
   }
 );
 
+// create a loan
 app.post(
   "/loan",
   body(["client_id"])
@@ -244,6 +247,7 @@ app.post(
   }
 );
 
+// fetch active loans
 app.get("/loans", async (req, res) => {
   try {
     // fetch all active loans
@@ -264,6 +268,7 @@ app.get("/loans", async (req, res) => {
   }
 });
 
+// fetch total loan amount
 app.get("/loan-amount", async (req, res) => {
   try {
     let total_amount =
@@ -279,6 +284,7 @@ app.get("/loan-amount", async (req, res) => {
   }
 });
 
+// fetch users who have loans above a certain threshold
 app.get(
   "/threshold-loans",
   query("amount").isInt().toInt().withMessage("Threshold amount required"),
