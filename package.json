@@ -12,6 +12,10 @@
     "body-parser": "^2.2.0",
     "dotenv": "^17.1.0",
     "express": "^5.1.0",
+    "express-validator": "^7.2.1",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.11.1"
   }
 }
