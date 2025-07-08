@@ -279,6 +279,53 @@ app.get("/loan-amount", async (req, res) => {
   }
 });
 
+app.get(
+  "/threshold-loans",
+  query("amount").isInt().toInt().withMessage("Threshold amount required"),
+  async (req, res) => {
+    try {
+      const result = validationResult(req);
+      if (result.isEmpty()) {
+        let data = matchedData(req);
+        let { amount } = data;
+
+        let clients = await prisma.clients.findMany({
+          where: {
+            deleted_at: null,
+            loans: {
+              some: {
+                active: true,
+                amount: {
+                  gt: amount,
+                },
+              },
+            },
+          },
+          select: {
+            uid: true,
+            full_name: true,
+            phone_number: true,
+          },
+        });
+
+        return res.status(200).json({ success: true, data: clients });
+      }
+
+      return res.status(400).json({
+        message: "validation failed",
+        validationErrors: result
+          .array()
+          .map((error) => `${error.path}(${error.location}): ${error.msg}`),
+      });
+    } catch (e) {
+      console.log(e);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+);
+
 app.listen(port, () => {
   console.log(
     `[server]: Server is running at http://localhost:${port || 3000}`
