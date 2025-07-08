@@ -279,9 +279,10 @@ app.get("/loan-amount", async (req, res) => {
     let total_amount =
       await prisma.$queryRaw`select sum(amount::numeric) as total from "Loans" where deleted_at is null`;
 
-    return res
-      .status(200)
-      .json({ success: true, data: { total: total_amount[0].amount } });
+    return res.status(200).json({
+      success: true,
+      data: { total: parseInt(total_amount[0].total) },
+    });
   } catch (e) {
     return res
       .status(500)
