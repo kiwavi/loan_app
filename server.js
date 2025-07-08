@@ -207,28 +207,33 @@ app.post(
         let loan;
 
         // create the loan with pessimistic concurrency control
-        await prisma.$transaction(async (tx) => {
-          let lockUser =
-            await tx.$queryRaw`select * from "Clients" where id=${user.id} for update`;
+        await prisma.$transaction(
+          async (tx) => {
+            let lockUser =
+              await tx.$queryRaw`select * from "Clients" where id=${user.id} for update`;
 
-          loan = await tx.Loans.create({
-            data: {
-              client_id: user.id,
-              amount,
-              approved: true,
-            },
-            select: {
-              uid: true,
-              amount: true,
-              user: {
-                select: {
-                  full_name: true,
-                  phone_number: true,
+            loan = await tx.Loans.create({
+              data: {
+                client_id: user.id,
+                amount,
+                approved: true,
+              },
+              select: {
+                uid: true,
+                amount: true,
+                user: {
+                  select: {
+                    full_name: true,
+                    phone_number: true,
+                  },
                 },
               },
-            },
-          });
-        });
+            });
+          },
+          {
+            timeout: 10000, // 10 seconds
+          }
+        );
 
         return res.status(200).json({ success: true, data: loan });
       }
